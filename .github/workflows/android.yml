@@ -1,0 +1,43 @@
+name: Build VEKTOR APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'VEKTOR-GitHub-ready.zip'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract project
+        run: |
+          unzip -q VEKTOR-GitHub-ready.zip -d extracted
+          find extracted -name settings.gradle.kts -print
+
+      - name: Build APK
+        run: |
+          cd extracted/VEKTOR
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VEKTOR-APK
+          path: extracted/VEKTOR/app/build/outputs/apk/debug/*.apk
